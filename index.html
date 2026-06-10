@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moj Boks – Platforma za skladišne usluge | Storage Platform</title>
+  <meta name="description" content="Moj Boks – Pronađite pružaoce skladišnih usluga u Srbiji. Find storage service providers in Serbia." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    :root {
+      --navy: #0D1B2A;
+      --steel: #1B3A5C;
+      --accent: #E8A020;
+      --accent-light: #FFF3DC;
+      --surface: #F5F7FA;
+      --white: #FFFFFF;
+      --text: #1A202C;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --danger: #EF4444;
+      --shadow: 0 4px 24px rgba(13,27,42,0.10);
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    /* HEADER */
+    header {
+      background: var(--navy);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 68px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px; font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+    }
+    .logo-text span { color: var(--accent); }
+    .header-actions {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .lang-toggle {
+      display: flex; gap: 4px;
+    }
+    .lang-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--accent); border-color: var(--accent);
+      color: var(--navy);
+    }
+    .btn-register {
+      background: var(--accent); color: var(--navy);
+      border: none; padding: 9px 20px; border-radius: 8px;
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-register:hover { background: #f5b030; transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--steel) 100%);
+      padding: 60px 24px 48px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 12px; font-weight: 600; letter-spacing: 2px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 700; color: var(--white);
+      line-height: 1.15; margin-bottom: 14px;
+      letter-spacing: -1px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 16px; color: rgba(255,255,255,0.7);
+      max-width: 560px; margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 40px;
+      margin-top: 32px;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px; font-weight: 700; color: var(--accent);
+    }
+    .stat-label { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+    /* SEARCH PANEL */
+    .search-section {
+      max-width: 1200px; margin: -30px auto 0;
+      padding: 0 24px; position: relative; z-index: 10;
+    }
+    .search-card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 28px 28px 24px;
+    }
+    .search-card-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-muted); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 18px;
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .search-group { display: flex; flex-direction: column; gap: 5px; }
+    .search-group label {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+    .search-input, .search-select {
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px; font-family: 'Inter', sans-serif;
+      color: var(--text); background: var(--white);
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .search-input:focus, .search-select:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .search-actions {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .btn-search {
+      background: var(--navy); color: var(--white);
+      border: none; padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 14px; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-search:hover { background: var(--steel); }
+    .btn-reset {
+      background: transparent; color: var(--text-muted);
+      border: 1.5px solid var(--border); padding: 10px 18px;
+      border-radius: 8px; font-weight: 500; font-size: 14px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+    .results-count {
+      font-size: 13px; color: var(--text-muted); margin-left: auto;
+    }
+
+    /* LISTINGS */
+    .listings-section {
+      max-width: 1200px; margin: 32px auto 60px;
+      padding: 0 24px;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px; font-weight: 700; color: var(--text);
+    }
+    .sort-select {
+      padding: 8px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 13px; color: var(--text-muted);
+      background: var(--white); cursor: pointer;
+    }
+
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .listing-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      padding: 22px;
+      cursor: pointer;
+      transition: all 0.22s;
+      position: relative;
+    }
+    .listing-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    .card-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 12px;
+    }
+    .card-company {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 17px; color: var(--text);
+      flex: 1; margin-right: 12px;
+    }
+    .card-price {
+      background: var(--accent-light);
+      color: #92550A;
+      font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      white-space: nowrap;
+    }
+    .card-location {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13px; color: var(--text-muted); margin-bottom: 12px;
+    }
+    .card-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+    }
+    .tag {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .tag-blue { background: #EFF6FF; color: #1D4ED8; }
+    .tag-green { background: #ECFDF5; color: #065F46; }
+    .tag-purple { background: #F5F3FF; color: #5B21B6; }
+    .card-capacity {
+      font-size: 13px; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 12px; margin-top: 4px;
+      display: flex; justify-content: space-between;
+    }
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 12px;
+    }
+    .card-views {
+      font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .btn-details {
+      background: var(--navy); color: var(--white);
+      border: none; padding: 7px 16px; border-radius: 7px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-details:hover { background: var(--steel); }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(13,27,42,0.7); z-index: 1000;
+      padding: 24px; overflow-y: auto;
+      align-items: flex-start; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 16px;
+      max-width: 680px; width: 100%; margin: auto;
+      overflow: hidden;
+    }
+    .modal-header {
+      background: var(--navy); padding: 24px 28px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .modal-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px; font-weight: 700; color: var(--white);
+    }
+    .modal-header .location-label {
+      font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px;
+    }
+    .modal-close {
+      background: rgba(255,255,255,0.15); border: none;
+      color: var(--white); font-size: 22px; width: 36px; height: 36px;
+      border-radius: 50%; cursor: pointer; transition: background 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-left: 16px;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.25); }
+    .modal-body { padding: 28px; }
+    .detail-section { margin-bottom: 22px; }
+    .detail-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .detail-value { font-size: 15px; color: var(--text); line-height: 1.5; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .contact-box {
+      background: var(--accent-light);
+      border: 1.5px solid var(--accent);
+      border-radius: 10px; padding: 16px 20px;
+      margin-top: 8px;
+    }
+    .contact-box .contact-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 600; color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .contact-box .contact-item:last-child { margin-bottom: 0; }
+    .disclaimer {
+      font-size: 11px; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 16px; margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    /* PROVIDER FORM */
+    .provider-section {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 60px 24px;
+    }
+    .provider-inner {
+      max-width: 760px; margin: 0 auto;
+    }
+    .section-eyebrow {
+      font-size: 12px; font-weight: 700; letter-spacing: 2px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .provider-inner h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px; font-weight: 700; color: var(--text);
+      margin-bottom: 8px;
+    }
+    .provider-inner > p {
+      font-size: 15px; color: var(--text-muted); margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .form-section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; color: var(--navy);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px; margin: 28px 0 18px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .required { color: var(--danger); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: 'Inter', sans-serif;
+      color: var(--text); background: var(--white);
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .checkbox-group {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px; margin-top: 6px;
+    }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; cursor: pointer;
+      transition: all 0.15s; font-size: 13px; color: var(--text);
+    }
+    .checkbox-item:hover { border-color: var(--accent); background: var(--accent-light); }
+    .checkbox-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+    .checkbox-item.checked { border-color: var(--accent); background: var(--accent-light); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .form-error { font-size: 12px; color: var(--danger); margin-top: 4px; display: none; }
+    .form-error.show { display: block; }
+
+    .other-input-wrapper { display: none; margin-top: 8px; }
+    .other-input-wrapper.show { display: block; }
+
+    .form-footer {
+      display: flex; align-items: center;
+      flex-wrap: wrap; gap: 16px; margin-top: 28px;
+    }
+    .btn-submit {
+      background: var(--navy); color: var(--white);
+      border: none; padding: 14px 32px; border-radius: 8px;
+      font-weight: 700; font-size: 15px; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-submit:hover { background: var(--steel); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .form-disclaimer {
+      font-size: 12px; color: var(--text-muted);
+      line-height: 1.5; flex: 1; min-width: 200px;
+    }
+    .success-banner {
+      display: none;
+      background: #ECFDF5; border: 1.5px solid #10B981;
+      border-radius: 10px; padding: 16px 20px;
+      color: #065F46; font-weight: 600; margin-top: 20px;
+    }
+    .success-banner.show { display: block; }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px; font-weight: 700; color: var(--white); margin-bottom: 10px;
+    }
+    .footer-logo span { color: var(--accent); }
+    .footer-disclaimer {
+      font-size: 12px; color: rgba(255,255,255,0.45);
+      max-width: 600px; margin: 0 auto; line-height: 1.6;
+    }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 16px; }
+
+    /* LOADING */
+    .loading-state {
+      text-align: center; padding: 60px 24px;
+      color: var(--text-muted);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state {
+      text-align: center; padding: 60px 24px;
+      color: var(--text-muted); grid-column: 1 / -1;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* MANAGE MODAL */
+    .manage-notice {
+      background: var(--accent-light);
+      border: 1.5px solid var(--accent);
+      border-radius: 10px; padding: 16px 20px;
+      margin-top: 28px; font-size: 14px; color: #92550A;
+    }
+    .manage-notice strong { display: block; margin-bottom: 4px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .search-grid { grid-template-columns: 1fr; }
+      .listings-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 20px; }
+      .header-inner { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">📦</div>
+      <div class="logo-text">Moj <span>Boks</span></div>
+    </a>
+    <div class="header-actions">
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('sr')" id="btn-sr">SR</button>
+        <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+      </div>
+      <button class="btn-register" onclick="scrollToForm()" data-sr="Prijavi se kao pružalac" data-en="List your warehouse">Prijavi se kao pružalac</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow" data-sr="Platforma za skladišne usluge · Srbija" data-en="Storage services platform · Serbia">Platforma za skladišne usluge · Srbija</div>
+  <h1 data-sr="Pronađite pravo<br><span>skladišno rešenje</span>" data-en="Find the right<br><span>storage solution</span>">Pronađite pravo<br><span>skladišno rešenje</span></h1>
+  <p data-sr="Moj Boks povezuje vlasnike skladišnog prostora sa korisnicima koji traže pouzdano i prilagodljivo skladištenje u Srbiji." data-en="Moj Boks connects storage space owners with users looking for reliable and flexible storage solutions in Serbia.">Moj Boks povezuje vlasnike skladišnog prostora sa korisnicima koji traže pouzdano i prilagodljivo skladištenje u Srbiji.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-providers">–</div>
+      <div class="stat-label" data-sr="pružalaca usluga" data-en="service providers">pružalaca usluga</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-locations">–</div>
+      <div class="stat-label" data-sr="lokacija" data-en="locations">lokacija</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label" data-sr="besplatno pretraživanje" data-en="free search">besplatno pretraživanje</div>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-card">
+    <div class="search-card-title" data-sr="🔍 Pretraži skladišta" data-en="🔍 Search warehouses">🔍 Pretraži skladišta</div>
+    <div class="search-grid">
+      <div class="search-group">
+        <label data-sr="Naziv kompanije" data-en="Company name">Naziv kompanije</label>
+        <input type="text" id="filter-company" class="search-input" placeholder="npr. Logistik d.o.o." />
+      </div>
+      <div class="search-group">
+        <label data-sr="Opština / Grad" data-en="Municipality / City">Opština / Grad</label>
+        <select id="filter-location" class="search-select">
+          <option value="">– Sve opštine –</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label data-sr="Tip skladišta" data-en="Warehouse type">Tip skladišta</label>
+        <select id="filter-warehouse" class="search-select">
+          <option value="">– Svi tipovi –</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label data-sr="Tip robe" data-en="Goods type">Tip robe</label>
+        <select id="filter-goods" class="search-select">
+          <option value="">– Sve vrste –</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label data-sr="Dodatne usluge" data-en="Additional services">Dodatne usluge</label>
+        <select id="filter-service" class="search-select">
+          <option value="">– Sve usluge –</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label data-sr="Cena (max RSD/dan)" data-en="Max price (RSD/day)">Cena (max RSD/dan)</label>
+        <input type="number" id="filter-price" class="search-input" placeholder="npr. 5000" min="0" />
+      </div>
+    </div>
+    <div class="search-actions">
+      <button class="btn-search" onclick="applyFilters()">
+        <span>🔍</span> <span data-sr="Pretraži" data-en="Search">Pretraži</span>
+      </button>
+      <button class="btn-reset" onclick="resetFilters()" data-sr="Poništi filtere" data-en="Clear filters">Poništi filtere</button>
+      <div class="results-count" id="results-count"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTINGS -->
+<div class="listings-section">
+  <div class="section-header">
+    <div class="section-title" data-sr="Dostupna skladišta" data-en="Available warehouses">Dostupna skladišta</div>
+    <select class="sort-select" id="sort-select" onchange="applyFilters()">
+      <option value="newest" data-sr="Najnoviji" data-en="Newest">Najnoviji</option>
+      <option value="price_asc" data-sr="Cena: rastuće" data-en="Price: ascending">Cena: rastuće</option>
+      <option value="price_desc" data-sr="Cena: opadajuće" data-en="Price: descending">Cena: opadajuće</option>
+      <option value="views_desc" data-sr="Najpregledavaniji" data-en="Most viewed">Najpregledavaniji</option>
+    </select>
+  </div>
+  <div class="listings-grid" id="listings-grid">
+    <div class="loading-state" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      <div data-sr="Učitavanje oglasa..." data-en="Loading listings...">Učitavanje oglasa...</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROVIDER FORM -->
+<section class="provider-section" id="provider-form-section">
+  <div class="provider-inner">
+    <div class="section-eyebrow" data-sr="Za pružaoce usluga" data-en="For service providers">Za pružaoce usluga</div>
+    <h2 data-sr="Objavite vaše skladište" data-en="List your warehouse">Objavite vaše skladište</h2>
+    <p data-sr="Popunite formular i vaš oglas biće odmah vidljiv potencijalnim klijentima. Usluga je potpuno besplatna." data-en="Fill in the form and your listing will be immediately visible to potential clients. The service is completely free.">Popunite formular i vaš oglas biće odmah vidljiv potencijalnim klijentima. Usluga je potpuno besplatna.</p>
+
+    <form id="provider-form" onsubmit="submitListing(event)" novalidate>
+
+      <!-- Osnovni podaci -->
+      <div class="form-section-title" data-sr="Osnovni podaci" data-en="Basic information">Osnovni podaci</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Naziv kompanije / Company name <span class="required">*</span></label>
+          <input type="text" class="form-input" id="f-company" placeholder="npr. Logistik d.o.o." required />
+          <div class="form-error" id="e-company">Polje je obavezno / Required field</div>
+        </div>
+        <div class="form-group">
+          <label>Opština <span class="required">*</span> / Municipality</label>
+          <select class="form-select" id="f-municipality" required>
+            <option value="">– Izaberite opštinu –</option>
+          </select>
+          <div class="form-error" id="e-municipality">Izaberite opštinu / Select municipality</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Adresa skladišta / Warehouse address</label>
+        <input type="text" class="form-input" id="f-address" placeholder="Ulica i broj (opciono / optional)" />
+        <div class="form-hint">Možete ostaviti samo opštinu / You may leave only the municipality</div>
+      </div>
+
+      <!-- Tip skladišta -->
+      <div class="form-section-title" data-sr="Tip skladišta" data-en="Warehouse type">Tip skladišta / Warehouse type</div>
+      <div class="form-group">
+        <label>Izaberite tip <span class="required">*</span> / Select type</label>
+        <div class="checkbox-group" id="warehouse-type-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="warehouseType" value="kontejneri_garaze" />
+            Kontejneri/Garaže
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="warehouseType" value="blok_industrijsko" />
+            Blok industrijsko
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="warehouseType" value="regalno_industrijsko" />
+            Regalno industrijsko
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="warehouseType" value="rasuti_teret" />
+            Rasuti teret
+          </label>
+          <label class="checkbox-item" id="wt-ostalo-item">
+            <input type="checkbox" name="warehouseType" value="ostalo" onchange="toggleOther('wt-other','this')" />
+            Ostalo / Other
+          </label>
+        </div>
+        <div class="other-input-wrapper" id="wt-other-wrapper">
+          <input type="text" class="form-input" id="wt-other" placeholder="Opišite tip / Describe type" />
+        </div>
+        <div class="form-error" id="e-warehouse">Izaberite tip / Select at least one</div>
+      </div>
+
+      <!-- Tip robe -->
+      <div class="form-section-title" data-sr="Tip robe" data-en="Goods type">Tip robe / Goods type</div>
+      <div class="form-group">
+        <label>Izaberite tip robe <span class="required">*</span> / Select goods type</label>
+        <div class="checkbox-group" id="goods-type-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="generalna" /> Generalna roba
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="lako_kvarljiva" /> Lako kvarljiva
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="sirovine_rasuti" /> Sirovine i rasuti
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="zamrznuta" /> Zamrznuta roba
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="opasna" /> Opasna roba
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="farmaceutski" /> Farmaceutski
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="hrana_konditorski" /> Hrana i konditorski
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="goodsType" value="ostalo" onchange="toggleOtherById('gt-other-wrapper')" />
+            Ostalo / Other
+          </label>
+        </div>
+        <div class="other-input-wrapper" id="gt-other-wrapper">
+          <input type="text" class="form-input" id="gt-other" placeholder="Opišite robu / Describe goods" />
+        </div>
+        <div class="form-error" id="e-goods">Izaberite tip robe / Select at least one</div>
+      </div>
+
+      <!-- Dodatne usluge -->
+      <div class="form-section-title" data-sr="Dodatne usluge" data-en="Additional services">Dodatne usluge / Additional services</div>
+      <div class="form-group">
+        <label>Označite usluge koje nudite / Services you offer (opciono / optional)</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="3pl" /> 3PL usluge</label>
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="paletizacija" /> Paletizacija</label>
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="komisioniranje" /> Komisioniranje</label>
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="sortiranje" /> Sortiranje</label>
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="deklarisanje" /> Deklarisanje</label>
+          <label class="checkbox-item"><input type="checkbox" name="extraServices" value="pakovanje" /> Pakovanje</label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="extraServices" value="ostalo" onchange="toggleOtherById('es-other-wrapper')" />
+            Ostalo / Other
+          </label>
+        </div>
+        <div class="other-input-wrapper" id="es-other-wrapper">
+          <input type="text" class="form-input" id="es-other" placeholder="Opišite uslugu / Describe service" />
+        </div>
+      </div>
+
+      <!-- Kapacitet -->
+      <div class="form-section-title" data-sr="Kapacitet" data-en="Capacity">Kapacitet / Capacity</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Ukupni kapacitet <span class="required">*</span> / Total capacity</label>
+          <input type="text" class="form-input" id="f-capacity-total" placeholder="npr. 500 paleta / 1200 m²" required />
+          <div class="form-hint">Broj paleta, m² ili m³ / Pallets, m² or m³</div>
+          <div class="form-error" id="e-capacity">Unesite kapacitet / Enter capacity</div>
+        </div>
+        <div class="form-group">
+          <label>Kapacitet boks sistema / Individual box capacity</label>
+          <input type="text" class="form-input" id="f-capacity-box" placeholder="npr. 10 kontejnera po 20 m²" />
+          <div class="form-hint">Ako imate odvojene boksove/kontejnere / If you have individual units</div>
+        </div>
+      </div>
+
+      <!-- Kontakt -->
+      <div class="form-section-title" data-sr="Kontakt za klijente" data-en="Client contact">Kontakt za klijente / Client contact</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Telefon <span class="required">*</span> / Phone</label>
+          <input type="text" class="form-input" id="f-phone" placeholder="+381 11 123 4567" required />
+          <div class="form-error" id="e-phone">Unesite telefon / Enter phone</div>
+        </div>
+        <div class="form-group">
+          <label>Email / E-mail</label>
+          <input type="email" class="form-input" id="f-email" placeholder="kontakt@firma.rs" />
+        </div>
+      </div>
+
+      <!-- Cena -->
+      <div class="form-section-title" data-sr="Cena" data-en="Pricing">Cena / Pricing</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cena / Price <span class="required">*</span></label>
+          <input type="text" class="form-input" id="f-price" placeholder='npr. "1500 RSD/dan" ili "po dogovoru"' required />
+          <div class="form-error" id="e-price">Unesite cenu / Enter price</div>
+        </div>
+        <div class="form-group">
+          <label>Numerička cena za sortiranje (RSD/dan)</label>
+          <input type="number" class="form-input" id="f-price-num" placeholder="npr. 1500 (ostaviti prazno ako je dogovor)" min="0" />
+          <div class="form-hint">Samo broj – koristi se za sortiranje po ceni / Used for price sorting</div>
+        </div>
+      </div>
+
+      <!-- Napomena -->
+      <div class="form-group">
+        <label>Napomena / Note (opciono)</label>
+        <textarea class="form-textarea" id="f-note" placeholder="Bilo šta što potencijalni klijenti treba da znaju..."></textarea>
+      </div>
+
+      <!-- Kod za upravljanje -->
+      <div class="form-section-title">Kod za upravljanje oglasom / Listing management code</div>
+      <div class="form-group">
+        <label>Upišite vaš lični kod <span class="required">*</span> / Enter your personal code</label>
+        <input type="text" class="form-input" id="f-manage-code" placeholder="Izmislite kod koji ćete zapamtiti, npr. Firma2025!" required />
+        <div class="form-hint">Ovaj kod koristite za izmenu ili uklanjanje oglasa. Sačuvajte ga! / Use this code to edit or remove your listing.</div>
+        <div class="form-error" id="e-code">Unesite kod / Enter a code</div>
+      </div>
+
+      <div class="manage-notice">
+        <strong>⚠️ Upamtite vaš kod!</strong>
+        Kod je jedini način da naknadno izmenite ili uklonite oglas. Moj Boks ne čuva vašu lozinku i ne može je obnoviti.
+      </div>
+
+      <div class="form-footer">
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <span>📤</span> <span data-sr="Objavi oglas" data-en="Publish listing">Objavi oglas</span>
+        </button>
+        <div class="form-disclaimer" data-sr="Objavljivanjem oglasa potvrđujete da su svi navedeni podaci tačni i da ste ovlašćeni da ih objavljujete. Moj Boks nije odgovoran za tačnost objavljenih informacija." data-en="By publishing, you confirm that all information is accurate and that you are authorized to publish it. Moj Boks is not responsible for the accuracy of published information.">
+          Objavljivanjem oglasa potvrđujete da su svi navedeni podaci tačni i da ste ovlašćeni da ih objavljujete. Moj Boks nije odgovoran za tačnost objavljenih informacija.
+        </div>
+      </div>
+
+      <div class="success-banner" id="success-banner">
+        ✅ Oglas je uspešno objavljen! / Listing published successfully! Vaš oglas je sada vidljiv svim posetiocima.
+      </div>
+    </form>
+
+    <!-- MANAGE LISTING -->
+    <div style="margin-top: 48px; padding-top: 32px; border-top: 2px solid var(--border);">
+      <div class="section-eyebrow" data-sr="Upravljanje oglasom" data-en="Manage listing">Upravljanje oglasom</div>
+      <h2 style="font-size:22px; margin-bottom:8px;" data-sr="Izmena ili uklanjanje oglasa" data-en="Edit or remove listing">Izmena ili uklanjanje oglasa</h2>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;" data-sr="Unesite naziv vaše kompanije i kod koji ste koristili pri registraciji." data-en="Enter your company name and the code you used when registering.">Unesite naziv vaše kompanije i kod koji ste koristili pri registraciji.</p>
+      <div class="form-grid" style="margin-bottom:12px;">
+        <div class="form-group">
+          <label>Naziv kompanije / Company name</label>
+          <input type="text" class="form-input" id="m-company" placeholder="Tačan naziv koji ste uneli" />
+        </div>
+        <div class="form-group">
+          <label>Vaš kod / Your code</label>
+          <input type="text" class="form-input" id="m-code" placeholder="Vaš kod za upravljanje" />
+        </div>
+      </div>
+      <button class="btn-search" onclick="findListing()" style="margin-bottom:16px;">
+        🔑 <span data-sr="Pronađi moj oglas" data-en="Find my listing">Pronađi moj oglas</span>
+      </button>
+      <div id="manage-result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Moj <span>Boks</span></div>
+    <div class="footer-disclaimer" data-sr="Moj Boks je platforma za oglašavanje skladišnih usluga. Moj Boks ne garantuje tačnost, potpunost niti ažurnost informacija objavljenih od strane pružalaca usluga. Sva odgovornost za objavljeni sadržaj leži isključivo na pružaocu usluge. Moj Boks nije strana u nikakvom poslovnom odnosu između korisnika i pružaoca usluge." data-en="Moj Boks is a platform for advertising storage services. Moj Boks does not guarantee the accuracy, completeness or timeliness of information published by service providers. All responsibility for published content rests solely with the service provider. Moj Boks is not a party to any business relationship between users and service providers.">
+      Moj Boks je platforma za oglašavanje skladišnih usluga. Moj Boks ne garantuje tačnost, potpunost niti ažurnost informacija objavljenih od strane pružalaca usluga. Sva odgovornost za objavljeni sadržaj leži isključivo na pružaocu usluge. Moj Boks nije strana u nikakvom poslovnom odnosu između korisnika i pružaoca usluge.
+    </div>
+    <div class="footer-copy">© 2025 Moj Boks · Sva prava zadržana</div>
+  </div>
+</footer>
+
+<!-- LISTING DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="modal-company">–</h2>
+        <div class="location-label" id="modal-location">–</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- dinamično -->
+    </div>
+  </div>
+</div>
+
+<!-- JS -->
+<script>
+let currentLang = 'sr';
+let allListings = [];
+let filteredListings = [];
+
+// ===== INICIJALIZACIJA =====
+window.addEventListener('DOMContentLoaded', async () => {
+  populateDropdowns();
+  await loadListings();
+  updateStats();
+});
+
+function populateDropdowns() {
+  // Opštine u search
+  const filterLoc = document.getElementById('filter-location');
+  OPSTINE_SRBIJE.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    filterLoc.appendChild(opt);
+  });
+  // Opštine u form
+  const formMun = document.getElementById('f-municipality');
+  OPSTINE_SRBIJE.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    formMun.appendChild(opt);
+  });
+
+  // Tipovi skladišta u search
+  const filterWh = document.getElementById('filter-warehouse');
+  TIPOVI_SKLADISTA.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.value; opt.textContent = t.sr;
+    filterWh.appendChild(opt);
+  });
+
+  // Tipovi robe u search
+  const filterGo = document.getElementById('filter-goods');
+  TIPOVI_ROBE.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.value; opt.textContent = t.sr;
+    filterGo.appendChild(opt);
+  });
+
+  // Dodatne usluge u search
+  const filterSv = document.getElementById('filter-service');
+  DODATNE_USLUGE.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.value; opt.textContent = t.sr;
+    filterSv.appendChild(opt);
+  });
+}
+
+// ===== LOAD LISTINGS FROM FIREBASE =====
+async function loadListings() {
+  try {
+    const snap = await db.collection('listings')
+      .where('approved', '==', true)
+      .orderBy('createdAt', 'desc')
+      .get();
+    allListings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    filteredListings = [...allListings];
+    renderListings(filteredListings);
+  } catch (e) {
+    // Fallback: bez filtera approved (za inicijalni setup)
+    try {
+      const snap = await db.collection('listings').orderBy('createdAt', 'desc').get();
+      allListings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      filteredListings = [...allListings];
+      renderListings(filteredListings);
+    } catch(e2) {
+      document.getElementById('listings-grid').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div><div>Greška pri učitavanju. Proverite konfiguraciju Firebase.</div></div>';
+    }
+  }
+}
+
+function updateStats() {
+  document.getElementById('stat-providers').textContent = allListings.length;
+  const uniqueLocs = new Set(allListings.map(l => l.municipality)).size;
+  document.getElementById('stat-locations').textContent = uniqueLocs;
+}
+
+// ===== RENDER CARDS =====
+function renderListings(list) {
+  const grid = document.getElementById('listings-grid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div>' +
+      (currentLang === 'sr' ? 'Nema rezultata za zadate filtere.' : 'No results for the selected filters.') +
+      '</div></div>';
+    return;
+  }
+
+  // Sort
+  const sortVal = document.getElementById('sort-select').value;
+  let sorted = [...list];
+  if (sortVal === 'price_asc') sorted.sort((a,b) => (a.priceNum||999999)-(b.priceNum||999999));
+  else if (sortVal === 'price_desc') sorted.sort((a,b) => (b.priceNum||0)-(a.priceNum||0));
+  else if (sortVal === 'views_desc') sorted.sort((a,b) => (b.views||0)-(a.views||0));
+
+  grid.innerHTML = sorted.map(l => buildCard(l)).join('');
+}
+
+function getLabel(arr, value) {
+  const found = arr.find(x => x.value === value);
+  return found ? (currentLang === 'sr' ? found.sr : found.en) : value;
+}
+
+function buildCard(l) {
+  const whTypes = (l.warehouseTypes || []).map(v => `<span class="tag tag-blue">${getLabel(TIPOVI_SKLADISTA, v)}</span>`).join('');
+  const gTypes = (l.goodsTypes || []).slice(0,2).map(v => `<span class="tag tag-green">${getLabel(TIPOVI_ROBE, v)}</span>`).join('');
+  const extra = (l.extraServices || []).length > 0 ?
+    `<span class="tag tag-purple">+${l.extraServices.length} ${currentLang==='sr'?'usluga':'services'}</span>` : '';
+  return `
+  <div class="listing-card" onclick="openModal('${l.id}')">
+    <div class="card-top">
+      <div class="card-company">${esc(l.company)}</div>
+      <div class="card-price">${esc(l.price)}</div>
+    </div>
+    <div class="card-location">📍 ${esc(l.municipality)}${l.address ? ', '+esc(l.address) : ''}</div>
+    <div class="card-tags">${whTypes}${gTypes}${extra}</div>
+    <div class="card-capacity">
+      <span>📦 ${esc(l.capacityTotal)}</span>
+    </div>
+    <div class="card-footer">
+      <div class="card-views">👁 ${l.views||0} ${currentLang==='sr'?'pregleda':'views'}</div>
+      <button class="btn-details">${currentLang==='sr'?'Detalji →':'Details →'}</button>
+    </div>
+  </div>`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===== FILTERS =====
+function applyFilters() {
+  const company = document.getElementById('filter-company').value.trim().toLowerCase();
+  const location = document.getElementById('filter-location').value;
+  const warehouse = document.getElementById('filter-warehouse').value;
+  const goods = document.getElementById('filter-goods').value;
+  const service = document.getElementById('filter-service').value;
+  const price = parseFloat(document.getElementById('filter-price').value) || null;
+
+  filteredListings = allListings.filter(l => {
+    if (company && !l.company.toLowerCase().includes(company)) return false;
+    if (location && l.municipality !== location) return false;
+    if (warehouse && !(l.warehouseTypes||[]).includes(warehouse)) return false;
+    if (goods && !(l.goodsTypes||[]).includes(goods)) return false;
+    if (service && !(l.extraServices||[]).includes(service)) return false;
+    if (price !== null && l.priceNum && l.priceNum > price) return false;
+    return true;
+  });
+
+  document.getElementById('results-count').textContent =
+    currentLang === 'sr'
+      ? `${filteredListings.length} rezultata`
+      : `${filteredListings.length} results`;
+
+  renderListings(filteredListings);
+}
+
+function resetFilters() {
+  document.getElementById('filter-company').value = '';
+  document.getElementById('filter-location').value = '';
+  document.getElementById('filter-warehouse').value = '';
+  document.getElementById('filter-goods').value = '';
+  document.getElementById('filter-service').value = '';
+  document.getElementById('filter-price').value = '';
+  document.getElementById('results-count').textContent = '';
+  filteredListings = [...allListings];
+  renderListings(filteredListings);
+}
+
+// ===== MODAL =====
+async function openModal(id) {
+  const l = allListings.find(x => x.id === id);
+  if (!l) return;
+
+  // Track view
+  try {
+    await db.collection('listings').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
+    const found = allListings.find(x => x.id === id);
+    if (found) found.views = (found.views || 0) + 1;
+  } catch(e) {}
+
+  document.getElementById('modal-company').textContent = l.company;
+  document.getElementById('modal-location').textContent =
+    '📍 ' + l.municipality + (l.address ? ', ' + l.address : '');
+
+  const sr = currentLang === 'sr';
+  const whLabels = (l.warehouseTypes||[]).map(v => getLabel(TIPOVI_SKLADISTA, v)).join(', ') +
+    (l.warehouseTypeOther ? ', ' + l.warehouseTypeOther : '');
+  const gLabels = (l.goodsTypes||[]).map(v => getLabel(TIPOVI_ROBE, v)).join(', ') +
+    (l.goodsTypeOther ? ', ' + l.goodsTypeOther : '');
+  const esLabels = (l.extraServices||[]).map(v => getLabel(DODATNE_USLUGE, v)).join(', ') +
+    (l.extraServiceOther ? ', ' + l.extraServiceOther : '');
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Tip skladišta':'Warehouse type'}</div>
+        <div class="detail-value">${esc(whLabels) || '–'}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Tip robe':'Goods type'}</div>
+        <div class="detail-value">${esc(gLabels) || '–'}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Ukupni kapacitet':'Total capacity'}</div>
+        <div class="detail-value">${esc(l.capacityTotal) || '–'}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Kapacitet boks sistema':'Box system capacity'}</div>
+        <div class="detail-value">${esc(l.capacityBox) || '–'}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Cena':'Price'}</div>
+        <div class="detail-value" style="font-weight:700; color:var(--navy); font-size:18px;">${esc(l.price)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">${sr?'Pregleda':'Views'}</div>
+        <div class="detail-value">👁 ${l.views||0}</div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">${sr?'Dodatne usluge':'Additional services'}</div>
+      <div class="detail-value">${esc(esLabels) || (sr?'Nema':'None')}</div>
+    </div>
+    ${l.note ? `<div class="detail-section">
+      <div class="detail-label">${sr?'Napomena':'Note'}</div>
+      <div class="detail-value">${esc(l.note)}</div>
+    </div>` : ''}
+    <div class="detail-section">
+      <div class="detail-label">${sr?'Kontakt':'Contact'}</div>
+      <div class="contact-box">
+        ${l.phone ? `<div class="contact-item">📞 ${esc(l.phone)}</div>` : ''}
+        ${l.email ? `<div class="contact-item">✉️ ${esc(l.email)}</div>` : ''}
+      </div>
+    </div>
+    <div class="disclaimer">${sr
+      ? 'Moj Boks nije odgovoran za tačnost prikazanih informacija. Sve podatke je dostavio pružalac usluge. Direktno kontaktirajte pružaoca za proveru dostupnosti.'
+      : 'Moj Boks is not responsible for the accuracy of the information displayed. All data has been provided by the service provider. Contact the provider directly to verify availability.'
+    }</div>`;
+
+  document.getElementById('detail-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== SUBMIT LISTING =====
+async function submitListing(e) {
+  e.preventDefault();
+  let valid = true;
+
+  const company = document.getElementById('f-company').value.trim();
+  const municipality = document.getElementById('f-municipality').value;
+  const address = document.getElementById('f-address').value.trim();
+  const capacityTotal = document.getElementById('f-capacity-total').value.trim();
+  const capacityBox = document.getElementById('f-capacity-box').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const price = document.getElementById('f-price').value.trim();
+  const priceNum = parseFloat(document.getElementById('f-price-num').value) || null;
+  const note = document.getElementById('f-note').value.trim();
+  const manageCode = document.getElementById('f-manage-code').value.trim();
+
+  const warehouseTypes = [...document.querySelectorAll('input[name="warehouseType"]:checked')].map(x=>x.value);
+  const goodsTypes = [...document.querySelectorAll('input[name="goodsType"]:checked')].map(x=>x.value);
+  const extraServices = [...document.querySelectorAll('input[name="extraServices"]:checked')].map(x=>x.value);
+
+  const warehouseTypeOther = document.getElementById('wt-other').value.trim();
+  const goodsTypeOther = document.getElementById('gt-other').value.trim();
+  const extraServiceOther = document.getElementById('es-other').value.trim();
+
+  // Validation
+  const showErr = (id, show) => {
+    document.getElementById(id).classList.toggle('show', show);
+    if (show) valid = false;
+  };
+  showErr('e-company', !company);
+  showErr('e-municipality', !municipality);
+  showErr('e-warehouse', warehouseTypes.length === 0);
+  showErr('e-goods', goodsTypes.length === 0);
+  showErr('e-capacity', !capacityTotal);
+  showErr('e-phone', !phone);
+  showErr('e-price', !price);
+  showErr('e-code', !manageCode);
+
+  if (!valid) return;
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Objavljivanje...';
+
+  try {
+    // Hash the manage code (simple, not cryptographic - just for privacy in DB)
+    const codeHash = await simpleHash(manageCode + company);
+
+    await db.collection('listings').add({
+      company, municipality, address,
+      warehouseTypes, warehouseTypeOther,
+      goodsTypes, goodsTypeOther,
+      extraServices, extraServiceOther,
+      capacityTotal, capacityBox,
+      phone, email, price, priceNum, note,
+      manageCodeHash: codeHash,
+      approved: true,
+      views: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('success-banner').classList.add('show');
+    document.getElementById('provider-form').reset();
+    document.querySelectorAll('.checkbox-item').forEach(i => i.classList.remove('checked'));
+    document.querySelectorAll('.other-input-wrapper').forEach(w => w.classList.remove('show'));
+    btn.innerHTML = '✅ Objavljeno!';
+    await loadListings();
+    updateStats();
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<span>📤</span> Objavi oglas';
+    }, 3000);
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = '<span>📤</span> Objavi oglas';
+    alert('Greška: ' + err.message);
+  }
+}
+
+async function simpleHash(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ===== MANAGE LISTING =====
+async function findListing() {
+  const company = document.getElementById('m-company').value.trim();
+  const code = document.getElementById('m-code').value.trim();
+  const resultDiv = document.getElementById('manage-result');
+
+  if (!company || !code) {
+    resultDiv.innerHTML = '<div style="color:var(--danger);font-size:14px;">Unesite naziv kompanije i kod / Enter company name and code</div>';
+    return;
+  }
+
+  resultDiv.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">⏳ Tražim oglas...</div>';
+
+  try {
+    const codeHash = await simpleHash(code + company);
+    const snap = await db.collection('listings')
+      .where('company', '==', company)
+      .where('manageCodeHash', '==', codeHash)
+      .get();
+
+    if (snap.empty) {
+      resultDiv.innerHTML = '<div style="color:var(--danger);font-size:14px;">❌ Nije pronađen oglas sa tim nazivom i kodom. / No listing found with that name and code.</div>';
+      return;
+    }
+
+    const doc = snap.docs[0];
+    const l = { id: doc.id, ...doc.data() };
+
+    resultDiv.innerHTML = `
+      <div style="background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:20px; margin-top:8px;">
+        <div style="font-weight:700; font-size:16px; margin-bottom:12px;">✅ Pronađen oglas: ${esc(l.company)}</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Opština: ${esc(l.municipality)} · Cena: ${esc(l.price)}</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-search" onclick="showEditForm('${l.id}', '${encodeURIComponent(JSON.stringify(l))}')" style="font-size:13px; padding:9px 18px;">
+            ✏️ Izmeni oglas
+          </button>
+          <button onclick="deleteListing('${l.id}')" style="background:var(--danger); color:white; border:none; padding:9px 18px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;">
+            🗑️ Ukloni oglas
+          </button>
+        </div>
+      </div>
+      <div id="edit-form-container"></div>`;
+  } catch(err) {
+    resultDiv.innerHTML = '<div style="color:var(--danger);font-size:14px;">Greška: ' + err.message + '</div>';
+  }
+}
+
+async function deleteListing(id) {
+  if (!confirm('Da li ste sigurni da želite da uklonite oglas? / Are you sure you want to remove the listing?')) return;
+  try {
+    await db.collection('listings').doc(id).delete();
+    document.getElementById('manage-result').innerHTML =
+      '<div style="color:var(--success); font-weight:600; font-size:14px;">✅ Oglas je uspešno uklonjen. / Listing successfully removed.</div>';
+    await loadListings();
+    updateStats();
+  } catch(err) {
+    alert('Greška: ' + err.message);
+  }
+}
+
+function showEditForm(id, encodedData) {
+  const l = JSON.parse(decodeURIComponent(encodedData));
+  const container = document.getElementById('edit-form-container');
+  container.innerHTML = `
+    <div style="background:var(--white); border:1.5px solid var(--accent); border-radius:10px; padding:24px; margin-top:16px;">
+      <div style="font-weight:700; font-size:16px; margin-bottom:16px; color:var(--navy);">✏️ Izmeni oglas / Edit listing</div>
+      <div class="form-group">
+        <label>Cena / Price</label>
+        <input type="text" class="form-input" id="edit-price" value="${esc(l.price)}" />
+      </div>
+      <div class="form-group">
+        <label>Numerička cena (RSD/dan)</label>
+        <input type="number" class="form-input" id="edit-price-num" value="${l.priceNum||''}" />
+      </div>
+      <div class="form-group">
+        <label>Telefon / Phone</label>
+        <input type="text" class="form-input" id="edit-phone" value="${esc(l.phone)}" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-input" id="edit-email" value="${esc(l.email||'')}" />
+      </div>
+      <div class="form-group">
+        <label>Ukupni kapacitet / Total capacity</label>
+        <input type="text" class="form-input" id="edit-capacity" value="${esc(l.capacityTotal)}" />
+      </div>
+      <div class="form-group">
+        <label>Napomena / Note</label>
+        <textarea class="form-textarea" id="edit-note">${esc(l.note||'')}</textarea>
+      </div>
+      <button class="btn-submit" onclick="saveEdit('${id}')" style="margin-top:8px;">
+        💾 Sačuvaj izmene / Save changes
+      </button>
+    </div>`;
+}
+
+async function saveEdit(id) {
+  try {
+    await db.collection('listings').doc(id).update({
+      price: document.getElementById('edit-price').value.trim(),
+      priceNum: parseFloat(document.getElementById('edit-price-num').value) || null,
+      phone: document.getElementById('edit-phone').value.trim(),
+      email: document.getElementById('edit-email').value.trim(),
+      capacityTotal: document.getElementById('edit-capacity').value.trim(),
+      note: document.getElementById('edit-note').value.trim(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert('✅ Izmene sačuvane! / Changes saved!');
+    await loadListings();
+    document.getElementById('manage-result').innerHTML = '<div style="color:var(--success); font-weight:600;">✅ Izmene uspešno sačuvane.</div>';
+  } catch(err) {
+    alert('Greška: ' + err.message);
+  }
+}
+
+// ===== OTHER TOGGLES =====
+function toggleOtherById(wrapperId) {
+  const checkboxes = document.querySelectorAll(`[onchange="toggleOtherById('${wrapperId}')"]`);
+  const checked = [...checkboxes].some(c => c.checked);
+  document.getElementById(wrapperId).classList.toggle('show', checked);
+}
+// For warehouse type
+document.querySelectorAll('input[name="warehouseType"][value="ostalo"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    document.getElementById('wt-other-wrapper').classList.toggle('show', cb.checked);
+  });
+});
+
+// Checkbox visual feedback
+document.querySelectorAll('.checkbox-item input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    cb.closest('.checkbox-item').classList.toggle('checked', cb.checked);
+  });
+});
+
+// ===== LANGUAGE =====
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-sr').classList.toggle('active', lang === 'sr');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+
+  document.querySelectorAll('[data-sr]').forEach(el => {
+    const text = el.getAttribute('data-' + lang);
+    if (text) el.innerHTML = text;
+  });
+
+  renderListings(filteredListings);
+}
+
+function scrollToForm() {
+  document.getElementById('provider-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
