@@ -546,12 +546,13 @@ async function loadAdminListings() {
 
 // ===== DASHBOARD =====
 function renderDashboard() {
-  const total = adminListings.length;
+  const total = new Set(adminListings.map(l => l.company.trim().toLowerCase())).size;
   const totalViews = adminListings.reduce((s,l) => s+(l.views||0), 0);
   const uniqueLocs = new Set(adminListings.map(l=>l.municipality)).size;
   const top = [...adminListings].sort((a,b)=>(b.views||0)-(a.views||0))[0];
 
   document.getElementById('s-total').textContent = total;
+  document.getElementById('s-total').title = adminListings.length + ' ukupno oglasa';
   document.getElementById('s-views').textContent = totalViews;
   document.getElementById('s-locations').textContent = uniqueLocs;
   document.getElementById('s-top-views').textContent = top ? (top.views||0) : '–';
@@ -581,7 +582,7 @@ function renderAdminTable(list) {
   body.innerHTML = list.map(l => {
     const wh = (l.warehouseTypes||[]).map(v=>whMap[v]||v).join(', ');
     const gd = (l.goodsTypes||[]).map(v=>gdMap[v]||v).join(', ');
-    const date = l.createdAt ? new Date(l.createdAt.seconds*1000).toLocaleDateString('sr-RS') : '–';
+    const date = timeAgo(l.createdAt);
     return `
     <tr>
       <td class="company-cell">${esc(l.company)}</td>
@@ -615,7 +616,7 @@ function loadStatsTab() {
   if (!sorted.length) { body.innerHTML = '<tr><td colspan="6" class="no-data">Nema podataka</td></tr>'; return; }
   body.innerHTML = sorted.map((l,i) => {
     const pct = Math.round(((l.views||0)/maxViews)*100);
-    const date = l.createdAt ? new Date(l.createdAt.seconds*1000).toLocaleDateString('sr-RS') : '–';
+    const date = timeAgo(l.createdAt);
     return `
     <tr>
       <td><strong>#${i+1}</strong></td>
@@ -649,7 +650,7 @@ function openPanel(id) {
   const wh = (l.warehouseTypes||[]).map(v=>whMap[v]||v).join(', ') + (l.warehouseTypeOther?', '+l.warehouseTypeOther:'');
   const gd = (l.goodsTypes||[]).map(v=>gdMap[v]||v).join(', ') + (l.goodsTypeOther?', '+l.goodsTypeOther:'');
   const es = (l.extraServices||[]).map(v=>esMap[v]||v).join(', ') + (l.extraServiceOther?', '+l.extraServiceOther:'');
-  const date = l.createdAt ? new Date(l.createdAt.seconds*1000).toLocaleString('sr-RS') : '–';
+  const date = timeAgo(l.createdAt);
 
   document.getElementById('panel-body').innerHTML = `
     <div class="panel-row"><div class="panel-label">ID oglasa</div><div class="panel-value" style="font-size:11px; color:var(--text-muted); word-break:break-all;">${l.id}</div></div>
@@ -713,7 +714,18 @@ async function changePassword() {
     msg.style.color = 'var(--danger)'; msg.textContent = '❌ Greška: ' + e.message;
   }
 }
-
+function timeAgo(ts) {
+  if (!ts) return '–';
+  const now = Date.now();
+  const date = ts.seconds ? ts.seconds * 1000 : ts;
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'upravo objavljeno';
+  if (diff < 3600) return 'pre ' + Math.floor(diff/60) + ' min';
+  if (diff < 86400) return 'pre ' + Math.floor(diff/3600) + ' h';
+  if (diff < 2592000) return 'pre ' + Math.floor(diff/86400) + ' dana';
+  if (diff < 31536000) return 'pre ' + Math.floor(diff/2592000) + ' mes.';
+  return 'pre ' + Math.floor(diff/31536000) + ' god.';
+}
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
