@@ -921,8 +921,9 @@ async function loadListings() {
 }
 
 function updateStats() {
-  document.getElementById('stat-providers').textContent = allListings.length;
+  const uniqueProviders = new Set(allListings.map(l => l.company.trim().toLowerCase())).size;
   const uniqueLocs = new Set(allListings.map(l => l.municipality)).size;
+  document.getElementById('stat-providers').textContent = uniqueProviders;
   document.getElementById('stat-locations').textContent = uniqueLocs;
 }
 
