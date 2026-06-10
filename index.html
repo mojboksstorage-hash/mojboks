@@ -968,12 +968,23 @@ function buildCard(l) {
       <span>📦 ${esc(l.capacityTotal)}</span>
     </div>
     <div class="card-footer">
-      <div class="card-views">👁 ${l.views||0} ${currentLang==='sr'?'pregleda':'views'}</div>
+      <div class="card-views">👁 ${l.views||0} ${currentLang==='sr'?'pregleda':'views'} · 🕐 ${timeAgo(l.createdAt)}</div>
       <button class="btn-details">${currentLang==='sr'?'Detalji →':'Details →'}</button>
     </div>
   </div>`;
 }
-
+function timeAgo(ts) {
+  if (!ts) return '';
+  const now = Date.now();
+  const date = ts.seconds ? ts.seconds * 1000 : ts;
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'upravo objavljeno';
+  if (diff < 3600) return 'pre ' + Math.floor(diff/60) + ' min';
+  if (diff < 86400) return 'pre ' + Math.floor(diff/3600) + ' h';
+  if (diff < 2592000) return 'pre ' + Math.floor(diff/86400) + ' dana';
+  if (diff < 31536000) return 'pre ' + Math.floor(diff/2592000) + ' mes.';
+  return 'pre ' + Math.floor(diff/31536000) + ' god.';
+}
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
