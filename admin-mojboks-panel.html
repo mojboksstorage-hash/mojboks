@@ -295,7 +295,7 @@
         </div>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Rang</th><th>Kompanija</th><th>Opština</th><th>Status</th><th>Pregledi</th><th>Upiti</th><th>Konverzija</th><th>Objavljeno</th></tr></thead>
+            <thead><tr><th>Rang</th><th>Kompanija</th><th>Opština</th><th>Status</th><th>Pregledi</th><th>Kontakt klikovi</th><th>Upiti</th><th>Konverzija</th><th>Objavljeno</th></tr></thead>
             <tbody id="stats-body"><tr><td colspan="8" class="no-data">Učitavanje...</td></tr></tbody>
           </table>
         </div>
@@ -538,6 +538,7 @@ function loadStatsTab() {
     const pct = Math.round(((l.views||0)/maxViews)*100);
     const inqPct = Math.round(((l.inquiryCount||0)/maxInq)*100);
     const conv = l.views ? ((l.inquiryCount||0)/l.views*100).toFixed(1)+'%' : '0%';
+    const clicks = l.contactClicks || 0;
     const st = l.status || 'active';
     const stBadge = st==='active' ? '<span class="badge status-active">✅</span>' : st==='paused' ? '<span class="badge status-paused">⏸</span>' : '<span class="badge status-full">🔴</span>';
     return `<tr>
@@ -557,6 +558,7 @@ function loadStatsTab() {
           <span style="font-size:11px; color:#3B82F6; width:24px;">${l.inquiryCount||0}</span>
         </div>
       </td>
+      <td><strong style="color:#059669;">${clicks}</strong></td>
       <td style="font-size:12px; font-weight:600; color:var(--success);">${conv}</td>
       <td style="font-size:12px; color:var(--text-muted);">${timeAgo(l.createdAt)}</td>
     </tr>`;
@@ -615,7 +617,7 @@ async function openPanel(id) {
     <div class="panel-row">
       <div class="panel-label">Statistika</div>
       <div class="panel-value">
-        👁 ${l.views||0} pregleda &nbsp;·&nbsp; 📩 ${l.inquiryCount||0} upita<br>
+        👁 ${l.views||0} pregleda &nbsp;·&nbsp; 📞 ${l.contactClicks||0} klikova na kontakt &nbsp;·&nbsp; 📩 ${l.inquiryCount||0} upita<br>
         <span style="color:var(--success); font-weight:600; font-size:13px;">Konverzija: ${l.views ? ((l.inquiryCount||0)/l.views*100).toFixed(1)+'%' : '–'}</span>
       </div>
     </div>
