@@ -250,7 +250,7 @@
               <tr>
                 <th>Kompanija</th><th>Opština</th><th>Status</th><th>Dostupnost</th>
                 <th>Pristup</th><th>Min. zakup</th><th>Kapacitet ukupno</th><th>Slobodno</th>
-                <th>Cena</th><th>Pregledi</th><th>Upiti</th><th>Objavljeno</th><th>Akcije</th>
+                <th>Cena</th><th>Pregledi</th><th>Kontakt klikovi</th><th>Upiti</th><th>Objavljeno</th><th>Akcije</th>
               </tr>
             </thead>
             <tbody id="admin-listings-body"><tr><td colspan="13" class="no-data">Učitavanje...</td></tr></tbody>
@@ -295,7 +295,7 @@
         </div>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Rang</th><th>Kompanija</th><th>Opština</th><th>Status</th><th>Pregledi</th><th>Kontakt klikovi</th><th>Upiti</th><th>Konverzija</th><th>Objavljeno</th></tr></thead>
+            <thead><tr><th>Rang</th><th>Kompanija</th><th>Opština</th><th>Status</th><th>Pregledi</th><th>Upiti</th><th>Kontakt klikovi</th><th>Konverzija</th><th>Objavljeno</th></tr></thead>
             <tbody id="stats-body"><tr><td colspan="8" class="no-data">Učitavanje...</td></tr></tbody>
           </table>
         </div>
@@ -473,6 +473,7 @@ function renderAdminTable(list) {
       <td style="font-size:12px; color:var(--success); font-weight:600;">${esc(l.capacityFree)||'–'}</td>
       <td><span class="badge badge-yellow">${esc(l.price)}</span></td>
       <td><strong>${l.views||0}</strong></td>
+      <td><strong style="color:#059669;">${l.contactClicks||0}</strong></td>
       <td><strong style="color:#3B82F6;">${l.inquiryCount||0}</strong></td>
       <td style="color:var(--text-muted); font-size:12px;">${date}</td>
       <td>
@@ -559,6 +560,7 @@ function loadStatsTab() {
           <span style="font-size:11px; color:#3B82F6; width:24px;">${l.inquiryCount||0}</span>
         </div>
       </td>
+      <td><strong style="color:#3B82F6;">${l.inquiryCount||0}</strong></td>
       <td><strong style="color:#059669;">${clicks}</strong></td>
       <td style="font-size:12px; font-weight:600; color:var(--success);">${conv}</td>
       <td style="font-size:12px; color:var(--text-muted);">${timeAgo(l.createdAt)}</td>
