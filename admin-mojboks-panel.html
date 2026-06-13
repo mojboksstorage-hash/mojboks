@@ -539,8 +539,8 @@ function loadStatsTab() {
   body.innerHTML = sorted.map((l,i) => {
     const pct = Math.round(((l.views||0)/maxViews)*100);
     const clicks = l.contactClicks || 0;
-    const clicksPct = Math.round((clicks/maxClicks)*100);
-    const conv = l.views ? (((l.inquiryCount||0)+clicks)/l.views*100).toFixed(1)+'%' : '0%';
+    const clicksPct = l.views ? Math.min(100, Math.round((clicks/l.views)*100)) : 0;
+    const conv = l.views ? Math.min(100, (((l.inquiryCount||0)+clicks)/l.views*100)).toFixed(1)+'%' : '0%';
     const st = l.status || 'active';
     const stBadge = st==='active' ? '<span class="badge status-active">✅</span>' : st==='paused' ? '<span class="badge status-paused">⏸</span>' : '<span class="badge status-full">🔴</span>';
     return `<tr>
