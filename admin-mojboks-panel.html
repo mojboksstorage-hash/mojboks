@@ -533,14 +533,14 @@ function filterLeads() {
 function loadStatsTab() {
   const sorted = [...adminListings].sort((a,b) => (b.views||0)-(a.views||0));
   const maxViews = sorted[0]?.views || 1;
-  const maxInq = Math.max(...sorted.map(l => l.inquiryCount||0), 1);
+  const maxClicks = Math.max(...sorted.map(l => l.contactClicks||0), 1);
   const body = document.getElementById('stats-body');
-  if (!sorted.length) { body.innerHTML = '<tr><td colspan="8" class="no-data">Nema podataka</td></tr>'; return; }
+  if (!sorted.length) { body.innerHTML = '<tr><td colspan="9" class="no-data">Nema podataka</td></tr>'; return; }
   body.innerHTML = sorted.map((l,i) => {
     const pct = Math.round(((l.views||0)/maxViews)*100);
-    const inqPct = Math.round(((l.inquiryCount||0)/maxInq)*100);
-    const conv = l.views ? ((l.inquiryCount||0)/l.views*100).toFixed(1)+'%' : '0%';
     const clicks = l.contactClicks || 0;
+    const clicksPct = Math.round((clicks/maxClicks)*100);
+    const conv = l.views ? (((l.inquiryCount||0)+clicks)/l.views*100).toFixed(1)+'%' : '0%';
     const st = l.status || 'active';
     const stBadge = st==='active' ? '<span class="badge status-active">✅</span>' : st==='paused' ? '<span class="badge status-paused">⏸</span>' : '<span class="badge status-full">🔴</span>';
     return `<tr>
@@ -556,22 +556,11 @@ function loadStatsTab() {
       </td>
       <td>
         <div class="views-bar">
-          <div class="bar-wrap"><div class="bar-fill-blue" style="width:${inqPct}%"></div></div>
-          <span style="font-size:11px; color:#3B82F6; width:24px;">${l.inquiryCount||0}</span>
-        </div>
-      </td>
-      <td>
-        <div class="views-bar">
-          <div class="bar-wrap"><div class="bar-fill-blue" style="width:${inqPct}%"></div></div>
-          <span style="font-size:11px; color:#3B82F6; width:24px;">${l.inquiryCount||0}</span>
-        </div>
-      </td>
-      <td>
-        <div class="views-bar">
-          <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(((clicks)/Math.max(...adminListings.map(x=>x.contactClicks||0),1))*100)}%; background:#059669;"></div></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:${clicksPct}%; background:#059669;"></div></div>
           <span style="font-size:11px; color:#059669; width:24px;">${clicks}</span>
         </div>
       </td>
+      <td><strong style="color:#3B82F6;">${l.inquiryCount||0}</strong></td>
       <td style="font-size:12px; font-weight:600; color:var(--success);">${conv}</td>
       <td style="font-size:12px; color:var(--text-muted);">${timeAgo(l.createdAt)}</td>
     </tr>`;
