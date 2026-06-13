@@ -548,12 +548,7 @@ function loadStatsTab() {
       <td class="company-cell">${esc(l.company)}</td>
       <td>${esc(l.municipality)}</td>
       <td>${stBadge}</td>
-      <td>
-        <div class="views-bar">
-          <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
-          <span style="font-size:11px; color:var(--text-muted); width:32px;">${l.views||0}</span>
-        </div>
-      </td>
+      <td><strong>${l.views||0}</strong></td>
       <td>
         <div class="views-bar">
           <div class="bar-wrap"><div class="bar-fill" style="width:${clicksPct}%; background:#059669;"></div></div>
