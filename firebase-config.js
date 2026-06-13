@@ -19,13 +19,6 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // =============================================
-// ADMIN KREDENCIJALI
-// Promeni ove vrednosti pre postavljanja sajta!
-// =============================================
-const ADMIN_EMAIL = "mojboksstorage@gmail.com";    // <- PROMENI OVO
-const ADMIN_PASSWORD = "mbs.5947";     // <- PROMENI OVO (jaka lozinka!)
-
-// =============================================
 // PODACI - OPŠTINE SRBIJE
 // =============================================
 const OPSTINE_SRBIJE = [
