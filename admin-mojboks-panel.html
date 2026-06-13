@@ -218,7 +218,7 @@
       <div class="table-card">
         <div class="table-header"><div class="table-title">🏆 Top 5 – Najpregledaniji oglasi</div></div>
         <table>
-          <thead><tr><th>#</th><th>Kompanija</th><th>Opština</th><th>Pregledi</th><th>Upiti</th><th>Status</th><th>Cena</th></tr></thead>
+          <thead><tr><th>#</th><th>Kompanija</th><th>Opština</th><th>Status</th><th>Pregledi</th><th>Kontakt klikovi</th><th>Upiti</th><th>Cena</th></tr></thead>
           <tbody id="top5-body"><tr><td colspan="7" class="no-data">Učitavanje...</td></tr></tbody>
         </table>
       </div>
@@ -445,9 +445,10 @@ function renderDashboard() {
       <td><strong>${i+1}</strong></td>
       <td class="company-cell">${esc(l.company)}</td>
       <td>${esc(l.municipality)}</td>
-      <td><strong>${l.views||0}</strong></td>
-      <td><strong style="color:#3B82F6;">${l.inquiryCount||0}</strong></td>
       <td>${stBadge}</td>
+      <td><strong>${l.views||0}</strong></td>
+      <td><strong style="color:#059669;">${l.contactClicks||0}</strong></td>
+      <td><strong style="color:#3B82F6;">${l.inquiryCount||0}</strong></td>
       <td>${esc(l.price)}</td>
     </tr>`;
   }).join('');
