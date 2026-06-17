@@ -906,7 +906,8 @@ async function sendInquiry(listingId, company) {
   const name = document.getElementById('inq-name').value.trim();
   const contact = document.getElementById('inq-contact').value.trim();
   const message = document.getElementById('inq-message').value.trim();
-  if (!name || !contact) { alert(currentLang==='sr'?'Unesite ime i kontakt podatke.':'Enter name and contact details.'); return; }
+  const contactClean = contact.replace(/[\s\-\(\)\+]/g, '');
+  if (!name || name.length < 2 || !contact || contactClean.length < 6) { alert(currentLang==='sr'?'Unesite ispravno ime (min. 2 karaktera) i kontakt (min. 6 karaktera).':'Enter a valid name (min. 2 characters) and contact (min. 6 characters).'); return; }
   try {
     await db.collection('inquiries').add({
       listingId, company, name, contact, message,
@@ -977,7 +978,8 @@ async function submitListing(e) {
   showErr('e-goods', goodsTypes.length===0);
   showErr('e-capacity', !capacityTotal);
   showErr('e-availability', !availability);
-  showErr('e-phone', !phone);
+  const phoneClean = phone.replace(/[\s\-\(\)\+]/g, '');
+  showErr('e-phone', !phone || phoneClean.length < 6 || !/^\+?[\d\s\-\(\)]{6,20}$/.test(phone));
   showErr('e-price', !price);
   showErr('e-code', !manageCode);
   if (!valid) return;
